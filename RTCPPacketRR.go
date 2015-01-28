@@ -9,6 +9,6 @@ type RTCPPacketRR interface {
 	GetReportBlock(n byte) RTCPReportBlock
 	SetReportBlock(n byte, rr RTCPReportBlock)
 
-	GetExtension() []byte
-	SetExtension([]byte)
+	GetProfileExtensions() []byte
+	SetProfileExtensions([]byte)
 }

@@ -24,14 +24,14 @@ type RTCPSDESItem interface {
 	GetSCSRC() uint32
 	SetSCSRC(uint32)
 
-	GetSDESType() RTCPSDESType
-	SetSDESType(RTCPSDESType)
+	GetType() RTCPSDESType
+	SetType(RTCPSDESType)
 
 	GetLength() byte
 	SetLength(byte)
 
-	GetContent() []byte
-	SetContent([]byte)
+	GetValue() []byte
+	SetValue([]byte)
 }
 
 type RTCPSDESItemPriv interface {

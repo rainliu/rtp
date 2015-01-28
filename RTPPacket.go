@@ -33,8 +33,8 @@ type RTPPacket interface {
 	GetPayloadType() byte
 	SetPayloadType(byte)
 
-	GetSeqNumber() uint16
-	SetSeqNumber(uint16)
+	GetSequenceNumber() uint16
+	SetSequenceNumber(uint16)
 
 	GetTimeStamp() uint32
 	SetTimeStamp(uint32)
@@ -47,6 +47,9 @@ type RTPPacket interface {
 
 	GetHeaderExtension() RTPHeaderExtension
 	SetHeaderExtension(RTPHeaderExtension)
+
+	GetPayload() []byte
+	SetPayload([]byte)
 }
 
 type RTPHeaderExtension interface {

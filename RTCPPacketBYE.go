@@ -9,6 +9,6 @@ type RTCPPacketBYE interface {
 	GetReasonLength() byte
 	SetReasonLength(byte)
 
-	GetReason() []byte
-	SetReason([]byte)
+	GetReasonForLeaving() []byte
+	SetReasonForLeaving([]byte)
 }

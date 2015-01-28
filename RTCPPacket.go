@@ -40,11 +40,11 @@ type RTCPReportBlock interface {
 	GetFractionLost() byte
 	SetFractionLost(byte)
 
-	GetPacketLostCumulativeNumber() uint32
-	SetPacketLostCumulativeNumber(uint32)
+	GetCumulativeNumberOfPacketLost() uint32
+	SetCumulativeNumberOfPacketLost(uint32)
 
-	GetExtSeqNumber() uint32
-	SetExtSeqNumber(uint32)
+	GetExtendedHighestSequenceNumberReceived() uint32
+	SetExtendedHighestSequenceNumberReceived(uint32)
 
 	GetInterarrivalJitter() uint32
 	SetInterarrivalJitter(uint32)

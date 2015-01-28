@@ -6,6 +6,17 @@ type RTCPPacketSR interface {
 	GetSenderSSRC() uint32
 	SetSenderSSRC(uint32)
 
+	GetSenderInfo() RTCPSenderInfo
+	SetSenderInfo(RTCPSenderInfo)
+
+	GetReportBlock(n byte) RTCPReportBlock
+	SetReportBlock(n byte, rr RTCPReportBlock)
+
+	GetProfileExtensions() []byte
+	SetProfileExtensions([]byte)
+}
+
+type RTCPSenderInfo interface {
 	GetNTPTimeStamp() uint64
 	SetNTPTimeStamp(uint64)
 
@@ -17,10 +28,4 @@ type RTCPPacketSR interface {
 
 	GetSenderOctetCount() uint32
 	SetSenderOctetCount(uint32)
-
-	GetReportBlock(n byte) RTCPReportBlock
-	SetReportBlock(n byte, rr RTCPReportBlock)
-
-	GetExtension() []byte
-	SetExtension([]byte)
 }
