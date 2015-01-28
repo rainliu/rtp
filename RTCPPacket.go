@@ -55,3 +55,7 @@ type RTCPReportBlock interface {
 	GetDLSR() uint32
 	SetDLSR(uint32)
 }
+
+func RTCPPacketize(buf []byte) (RTCPPacket, error) {
+	return nil, nil
+}

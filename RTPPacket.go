@@ -68,3 +68,7 @@ type RTPHeaderExtension interface {
 	GetExtensionData() []byte
 	SetExtensionData([]byte)
 }
+
+func RTPPacketize(buf []byte) (RTPPacket, error) {
+	return nil, nil
+}

@@ -1,9 +1,11 @@
 package rtp
 
+import "net"
+
 type RTPListener interface {
-	HandleRTPEvent(RTPPacket)
+	HandleRTPEvent(RTPPacket, *net.UDPAddr)
 }
 
 type RTCPListener interface {
-	HandleRTCPEvent(RTCPPacket)
+	HandleRTCPEvent(RTCPPacket, *net.UDPAddr)
 }
