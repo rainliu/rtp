@@ -1,7 +1,6 @@
 package rtp
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"sync"
@@ -116,6 +115,11 @@ func (this *session) ServeConn(conn *net.UDPConn, tt TransportType) {
 	defer this.waitGroup.Done()
 	defer conn.Close()
 
+	var n int
+	var addr *net.UDPAddr
+	var err error
+	var buf [RTP_MTU_SIZE]byte
+
 	for {
 		select {
 		case <-this.quit:
@@ -123,13 +127,15 @@ func (this *session) ServeConn(conn *net.UDPConn, tt TransportType) {
 			return
 		default:
 		}
-		if buf, addr, err := this.ReadPacket(conn); err != nil {
+
+		conn.SetReadDeadline(time.Now().Add(1e9)) //wait for 1 second
+		if n, addr, err = conn.ReadFromUDP(buf[:]); err != nil {
 			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
 				continue
 			}
 		} else {
 			if tt == TRANSPORT_RTP {
-				if pkt, err := RTPPacketize(buf); err != nil {
+				if pkt, err := RTPPacketize(buf[0:n]); err != nil {
 					continue
 				} else {
 					for _, ln := range this.rtpListeners {
@@ -137,7 +143,7 @@ func (this *session) ServeConn(conn *net.UDPConn, tt TransportType) {
 					}
 				}
 			} else {
-				if pkt, err := RTCPPacketize(buf); err != nil {
+				if pkt, err := RTCPPacketize(buf[0:n]); err != nil {
 					continue
 				} else {
 					for _, ln := range this.rtcpListeners {
@@ -148,35 +154,4 @@ func (this *session) ServeConn(conn *net.UDPConn, tt TransportType) {
 		}
 
 	}
-}
-
-func (this *session) ReadPacket(conn *net.UDPConn) ([]byte, *net.UDPAddr, error) {
-	var pkt [4]byte
-	var n int
-	var addr1, addr2 *net.UDPAddr
-	var err error
-
-	conn.SetReadDeadline(time.Now().Add(1e9)) //wait for 1 second
-	if n, addr1, err = conn.ReadFromUDP(pkt[:]); err != nil {
-		return nil, addr1, err
-	}
-	if n != 4 {
-		return nil, addr1, fmt.Errorf("Invalid RTP/RTCP Packet Fixed Header %d from %s", n, addr1.String())
-	}
-
-	length := (int(pkt[2]) << 8) | int(pkt[3])
-	buf := make([]byte, length+4)
-	copy(buf[0:4], pkt[:])
-
-	if n, addr2, err = conn.ReadFromUDP(buf[4:]); err != nil {
-		return nil, addr2, err
-	}
-	if n != length {
-		return nil, addr2, fmt.Errorf("Invalid RTP/RTCP Packet Variable Length %d from %s", n, addr2.String())
-	}
-	if addr1.String() != addr2.String() {
-		return nil, nil, fmt.Errorf("Invalid RTP/RTCP Packet Address between Fixed Header %s and Variable Part %s", addr1.String(), addr2.String())
-	}
-
-	return buf, addr2, nil
 }

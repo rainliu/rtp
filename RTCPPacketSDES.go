@@ -1,24 +1,25 @@
 package rtp
 
+type RTCPSDESType byte
+
+const (
+	RTCP_SDES_END RTCPSDESType = iota
+	RTCP_SDES_CNAME
+	RTCP_SDES_NAME
+	RTCP_SDES_EMAIL
+	RTCP_SDES_PHONE
+	RTCP_SDES_LOC
+	RTCP_SDES_TOOL
+	RTCP_SDES_NOTE
+	RTCP_SDES_PRIV
+)
+
 type RTCPPacketSDES interface {
 	RTCPPacket
 
 	GetSDESItem(n byte) RTCPSDESItem
 	SetSDESItem(n byte, sdes RTCPSDESItem)
 }
-
-type RTCPSDESType byte
-
-const (
-	CNAME RTCPSDESType = 1 + iota
-	NAME
-	EMAIL
-	PHONE
-	LOC
-	TOOL
-	NOTE
-	PRIV
-)
 
 type RTCPSDESItem interface {
 	GetSCSRC() uint32

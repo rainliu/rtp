@@ -1,5 +1,12 @@
 package rtp
 
+const (
+	RTP_VERSION  = 2
+	RTP_SEQ_MOD  = 1 << 16
+	RTP_MAX_SDES = 255
+	RTP_MTU_SIZE = 1500
+)
+
 type IBytizer interface {
 	IBytize() []byte
 }

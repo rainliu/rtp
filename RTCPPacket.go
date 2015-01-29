@@ -3,11 +3,16 @@ package rtp
 type RTCPPacketType byte
 
 const (
-	SR RTCPPacketType = 200
-	RR
-	SDES
-	BYE
-	APP
+	RTCP_SR RTCPPacketType = 200
+	RTCP_RR
+	RTCP_SDES
+	RTCP_BYE
+	RTCP_APP
+)
+
+const (
+	RTCP_VALID_MASK  = (0xc000 | 0x2000 | 0x00fe)
+	RTCP_VALID_VALUE = ((RTP_VERSION << 14) | int(RTCP_SR))
 )
 
 type RTCPPacket interface {
