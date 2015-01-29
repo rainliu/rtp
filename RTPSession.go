@@ -93,11 +93,23 @@ func (this *session) SetRTCPTransport(t RTCPTransport) {
 }
 
 func (this *session) SendRTPPacket(pkt RTPPacket, addr *net.UDPAddr) (int, error) {
-	return this.transports[TRANSPORT_RTP].GetConn().WriteToUDP(pkt.Bytes(), addr)
+	if this.transports[TRANSPORT_RTP] != nil {
+		if this.transports[TRANSPORT_RTP].GetConn() != nil {
+			return this.transports[TRANSPORT_RTP].GetConn().WriteToUDP(pkt.Bytes(), addr)
+		}
+	}
+
+	return 0, errors.New("Please SetRTPTransport and Run first!")
 }
 
 func (this *session) SendRTCPPacket(pkt RTCPPacket, addr *net.UDPAddr) (int, error) {
-	return this.transports[TRANSPORT_RTCP].GetConn().WriteToUDP(pkt.Bytes(), addr)
+	if this.transports[TRANSPORT_RTCP] != nil {
+		if this.transports[TRANSPORT_RTCP].GetConn() != nil {
+			return this.transports[TRANSPORT_RTCP].GetConn().WriteToUDP(pkt.Bytes(), addr)
+		}
+	}
+
+	return 0, errors.New("Please SetRTCPTransport and Run first!")
 }
 
 func (this *session) Run() error {
