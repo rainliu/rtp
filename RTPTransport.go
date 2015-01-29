@@ -15,6 +15,12 @@ type Transport interface {
 	SetConn(*net.UDPConn)
 	GetConn() *net.UDPConn
 }
+type RTPTransport interface {
+	Transport
+}
+type RTCPTransport interface {
+	Transport
+}
 
 ////////////////////Implementation////////////////////////
 

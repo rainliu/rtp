@@ -1,6 +1,7 @@
 package rtp
 
 import (
+	"errors"
 	"log"
 	"net"
 	"sync"
@@ -14,8 +15,11 @@ type RTPSession interface {
 	AddRTCPListener(RTCPListener)
 	RemoveRTCPListener(RTCPListener)
 
-	SetRTPTransport(Transport)
-	SetRTCPTransport(Transport)
+	SetRTPTransport(RTPTransport)
+	SetRTCPTransport(RTCPTransport)
+
+	SendRTPPacket(RTPPacket, addr *net.UDPAddr) (int, error)
+	SendRTCPPacket(RTCPPacket, addr *net.UDPAddr) (int, error)
 
 	Run() error
 	Stop()
@@ -26,9 +30,6 @@ type RTPSession interface {
 	SetLocation(string)
 	SetTool(string)
 	SetNote(string)
-
-	SendRTPPacket(RTPPacket)
-	SendRTCPPacket(RTCPPacket)
 }
 
 type TransportType byte
@@ -46,6 +47,13 @@ type session struct {
 
 	quit      chan bool
 	waitGroup *sync.WaitGroup
+
+	cname    string
+	email    string
+	phone    string
+	location string
+	tool     string
+	note     string
 }
 
 func NewSession() *session {
@@ -76,15 +84,27 @@ func (this *session) RemoveRTCPListener(l RTCPListener) {
 	delete(this.rtcpListeners, l)
 }
 
-func (this *session) SetRTPTransport(t Transport) {
+func (this *session) SetRTPTransport(t RTPTransport) {
 	this.transports[TRANSPORT_RTP] = t
 }
 
-func (this *session) SetRTCPTransport(t Transport) {
+func (this *session) SetRTCPTransport(t RTCPTransport) {
 	this.transports[TRANSPORT_RTCP] = t
 }
 
+func (this *session) SendRTPPacket(pkt RTPPacket, addr *net.UDPAddr) (int, error) {
+	return this.transports[TRANSPORT_RTP].GetConn().WriteToUDP(pkt.Bytes(), addr)
+}
+
+func (this *session) SendRTCPPacket(pkt RTCPPacket, addr *net.UDPAddr) (int, error) {
+	return this.transports[TRANSPORT_RTCP].GetConn().WriteToUDP(pkt.Bytes(), addr)
+}
+
 func (this *session) Run() error {
+	if this.transports[TRANSPORT_RTP] == nil || this.transports[TRANSPORT_RTCP] == nil {
+		return errors.New("Please SetRTPTransport/SetRTCPTransport first!")
+	}
+
 	for tt, tp := range this.transports {
 		var conn *net.UDPConn
 		var err error
@@ -110,6 +130,27 @@ func (this *session) Stop() {
 	close(this.quit)
 	this.waitGroup.Wait()
 }
+
+func (this *session) SetCName(cname string) {
+	this.cname = cname
+}
+func (this *session) SetEmail(email string) {
+	this.email = email
+}
+func (this *session) SetPhone(phone string) {
+	this.phone = phone
+}
+func (this *session) SetLocation(location string) {
+	this.location = location
+}
+func (this *session) SetTool(tool string) {
+	this.tool = tool
+}
+func (this *session) SetNote(note string) {
+	this.note = note
+}
+
+//////////////////////////////////////////////////////////////////////
 
 func (this *session) ServeConn(conn *net.UDPConn, tt TransportType) {
 	defer this.waitGroup.Done()
