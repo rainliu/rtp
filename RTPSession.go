@@ -8,28 +8,18 @@ import (
 	"time"
 )
 
-type RTPSession interface {
+type Session interface {
 	AddRTPListener(RTPListener)
 	RemoveRTPListener(RTPListener)
 
 	AddRTCPListener(RTCPListener)
 	RemoveRTCPListener(RTCPListener)
 
-	SetRTPTransport(RTPTransport)
-	SetRTCPTransport(RTCPTransport)
-
 	SendRTPPacket(RTPPacket, addr *net.UDPAddr) (int, error)
 	SendRTCPPacket(RTCPPacket, addr *net.UDPAddr) (int, error)
 
 	Run() error
 	Stop()
-
-	SetCName(string)
-	SetEmail(string)
-	SetPhone(string)
-	SetLocation(string)
-	SetTool(string)
-	SetNote(string)
 }
 
 type TransportType byte
@@ -40,14 +30,7 @@ const (
 	TRANSPORT_NUM
 )
 
-type session struct {
-	rtpListeners  map[RTPListener]RTPListener
-	rtcpListeners map[RTCPListener]RTCPListener
-	transports    [TRANSPORT_NUM]Transport
-
-	quit      chan bool
-	waitGroup *sync.WaitGroup
-
+type SessionParam struct {
 	cname    string
 	email    string
 	phone    string
@@ -56,7 +39,18 @@ type session struct {
 	note     string
 }
 
-func NewSession() *session {
+type session struct {
+	rtpListeners  map[RTPListener]RTPListener
+	rtcpListeners map[RTCPListener]RTCPListener
+	transports    [TRANSPORT_NUM]Transport
+
+	quit      chan bool
+	waitGroup *sync.WaitGroup
+
+	param SessionParam
+}
+
+func NewSession(rtpt, rtcpt Transport, sp SessionParam) *session {
 	this := &session{}
 
 	this.rtpListeners = make(map[RTPListener]RTPListener)
@@ -64,6 +58,10 @@ func NewSession() *session {
 
 	this.quit = make(chan bool)
 	this.waitGroup = &sync.WaitGroup{}
+
+	this.transports[TRANSPORT_RTP] = rtpt
+	this.transports[TRANSPORT_RTCP] = rtcpt
+	this.param = sp
 
 	return this
 }
@@ -84,39 +82,23 @@ func (this *session) RemoveRTCPListener(l RTCPListener) {
 	delete(this.rtcpListeners, l)
 }
 
-func (this *session) SetRTPTransport(t RTPTransport) {
-	this.transports[TRANSPORT_RTP] = t
-}
-
-func (this *session) SetRTCPTransport(t RTCPTransport) {
-	this.transports[TRANSPORT_RTCP] = t
-}
-
 func (this *session) SendRTPPacket(pkt RTPPacket, addr *net.UDPAddr) (int, error) {
-	if this.transports[TRANSPORT_RTP] != nil {
-		if this.transports[TRANSPORT_RTP].GetConn() != nil {
-			return this.transports[TRANSPORT_RTP].GetConn().WriteToUDP(pkt.Bytes(), addr)
-		}
+	if this.transports[TRANSPORT_RTP].GetConn() != nil {
+		return this.transports[TRANSPORT_RTP].GetConn().WriteToUDP(pkt.Bytes(), addr)
 	}
 
-	return 0, errors.New("Please SetRTPTransport and Run first!")
+	return 0, errors.New("Please Run Session first!")
 }
 
 func (this *session) SendRTCPPacket(pkt RTCPPacket, addr *net.UDPAddr) (int, error) {
-	if this.transports[TRANSPORT_RTCP] != nil {
-		if this.transports[TRANSPORT_RTCP].GetConn() != nil {
-			return this.transports[TRANSPORT_RTCP].GetConn().WriteToUDP(pkt.Bytes(), addr)
-		}
+	if this.transports[TRANSPORT_RTCP].GetConn() != nil {
+		return this.transports[TRANSPORT_RTCP].GetConn().WriteToUDP(pkt.Bytes(), addr)
 	}
 
-	return 0, errors.New("Please SetRTCPTransport and Run first!")
+	return 0, errors.New("Please Run Session first!")
 }
 
 func (this *session) Run() error {
-	if this.transports[TRANSPORT_RTP] == nil || this.transports[TRANSPORT_RTCP] == nil {
-		return errors.New("Please SetRTPTransport/SetRTCPTransport first!")
-	}
-
 	for tt, tp := range this.transports {
 		var conn *net.UDPConn
 		var err error
@@ -141,25 +123,6 @@ func (this *session) Run() error {
 func (this *session) Stop() {
 	close(this.quit)
 	this.waitGroup.Wait()
-}
-
-func (this *session) SetCName(cname string) {
-	this.cname = cname
-}
-func (this *session) SetEmail(email string) {
-	this.email = email
-}
-func (this *session) SetPhone(phone string) {
-	this.phone = phone
-}
-func (this *session) SetLocation(location string) {
-	this.location = location
-}
-func (this *session) SetTool(tool string) {
-	this.tool = tool
-}
-func (this *session) SetNote(note string) {
-	this.note = note
 }
 
 //////////////////////////////////////////////////////////////////////

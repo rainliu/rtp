@@ -15,6 +15,14 @@ const (
 	RTCP_VALID_VALUE = ((RTP_VERSION << 14) | int(RTCP_SR))
 )
 
+type IBytizer interface {
+	IBytize() []byte
+}
+
+type IParser interface {
+	IParse([]byte) error
+}
+
 type RTCPPacket interface {
 	IBytizer
 	Bytes() []byte
